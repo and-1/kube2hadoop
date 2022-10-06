@@ -1,0 +1,6 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ include "token-fetcher.fullname" . }}-hadoop
+data:
+{{ (.Files.Glob "files/*.xml").AsConfig | indent 2 }}

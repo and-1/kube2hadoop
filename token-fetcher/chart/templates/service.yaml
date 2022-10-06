@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "token-fetcher.fullname" . }}
+  labels:
+    {{- include "token-fetcher.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9966
+      targetPort: 9966
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "token-fetcher.selectorLabels" . | nindent 4 }}

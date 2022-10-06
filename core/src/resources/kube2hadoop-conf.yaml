@@ -31,13 +31,13 @@ data:
       <property>
         <description>Super user keytab location</description>
         <name>kube2hadoop.keytab.location</name>
-        <value></value>
+        <value>/root/keytab</value>
       </property>
 
       <property>
         <description>Kube2Hadoop token renewer name</description>
         <name>kube2hadoop.renewer.name</name>
-        <value></value>
+        <value>renew</value>
       </property>
 
       <!-- Kubernetes Authenticator configurations -->
@@ -45,25 +45,25 @@ data:
       <property>
         <description>Kubernetes api server host ip</description>
         <name>kubernetes.service.host</name>
-        <value></value>
+        <value>kubernetes</value>
       </property>
 
       <property>
         <description>Kubernetes api server port</description>
         <name>kubernetes.service.port</name>
-        <value></value>
+        <value>6443</value>
       </property>
 
       <property>
         <description>LDAP Provider URL for LDAP lookup</description>
         <name>kube2hadoop.authenticator.ldap-provider-url</name>
-        <value></value>
+        <value>ldap.io</value>
       </property>
 
       <property>
         <description>Group domain to perform the LDAP lookup</description>
         <name>kube2hadoop.authenticator.ldap-group-domain</name>
-        <value></value>
+        <value>admin</value>
       </property>
 
       <property>
@@ -89,13 +89,13 @@ data:
           Label selector string (can use regex) for filtering which pods to watch from Kubernetes API server
         </description>
         <name>kubernetes.watch.labelselector</name>
-        <value></value>
+        <value>mylabel=true</value>
       </property>
 
       <property>
         <description>Hadoop configuration file directory</description>
         <name>hadoop.conf.dir</name>
-        <value></value>
+        <value>/root</value>
       </property>
     </configuration>
   log4j.properties: |

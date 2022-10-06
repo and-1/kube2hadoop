@@ -16,11 +16,12 @@ import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.BasicAttributes;
+//import javax.naming.directory.Attributes;
+//import javax.naming.directory.BasicAttributes;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchResult;
+import javax.naming.directory.SearchControls;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -74,15 +75,19 @@ public class LDAPAuthenticatorDecorator implements Authenticator {
     LOG.info("Fetch headless users from LDAP for " + uid);
     List<String> users = new ArrayList<>();
 
-    Attributes attr = new BasicAttributes();
-    attr.put(Constants.CN_ATTR, uid);
+    //Attributes attr = new BasicAttributes();
+    //attr.put(Constants.CN_ATTR, uid);
+    String attr = Constants.CN_ATTR + "=" + uid;
 
     DirContext ctx = null;
     try {
+      SearchControls ctls = new SearchControls();
+      ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+
       ctx = new InitialDirContext(createLdapEnv());
 
       String groupDomain = getConfiguration().get(ConfigurationKeys.KUBE2HAdOOP_AUTHENTICATOR_LDAP_GROUP_DOMAIN);
-      NamingEnumeration<SearchResult> results = ctx.search(groupDomain, attr);
+      NamingEnumeration<SearchResult> results = ctx.search(groupDomain, attr, ctls);
       if (!results.hasMore()) {
         throw new NamingException();
       }

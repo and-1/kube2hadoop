@@ -65,8 +65,7 @@ public class TokenFetcherService {
     this.conf = conf;
     String keytabLocation = conf.getRaw(ConfigurationKeys.KUBE2HADOOP_KEYTAB_LOCATION);
     String keytabPrincipal = getPrincipalFromKeytab(keytabLocation);
-    tokenRenewer = conf.get(ConfigurationKeys.KUBE2HADOOP_RENEWER_NAME,
-        ConfigurationKeys.DEFAULT_KUBE2HADOOP_RENEWER_NAME);
+    tokenRenewer = conf.get(ConfigurationKeys.KUBE2HADOOP_RENEWER_NAME, keytabPrincipal);
 
     String hadoopConfDir = conf.get(ConfigurationKeys.HADOOP_CONF_DIR, null);
     if (hadoopConfDir == null) {
@@ -251,7 +250,6 @@ public class TokenFetcherService {
     final FileSystem fs = FileSystem.get(TokenFetcherService.this.conf);
     // check if we get the correct FS, and most importantly, the conf
     LOG.info("Getting DFS token from " + fs.getUri());
-
     final Token<?>[] fsTokens =
         fs.addDelegationTokens(tokenRenewer, cred);
 

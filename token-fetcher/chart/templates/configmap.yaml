@@ -1,0 +1,33 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ include "token-fetcher.fullname" . }}-conf
+data:
+  kube2hadoop.xml: |
+    <?xml version="1.0"?>
+    <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+    <configuration>
+    {{- range $k,$v := .Values.conf.appConfig }}
+      <property>
+        <name>{{$k}}</name>
+        <value>{{$v}}</value>
+      </property>    
+    {{- end }}
+    </configuration>
+  log4j.properties: |
+    #root logger option
+    log4j.rootLogger={{ .Values.conf.logLevel | upper }}, stdout
+
+    # Direct log messages to stdout
+    log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+    log4j.appender.stdout.Target=System.out
+    log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+    log4j.appender.stdout.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+{{- with .Values.conf.caFreeIPA }}
+  ca-freeipa.pem: |
+    {{ . | nindent 4 }}
+{{- end }}
+{{- if .Values.conf.krb5ConfFile }}
+{{ (.Files.Glob .Values.conf.krb5ConfFile).AsConfig | indent 2 }}
+{{- end }}

@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "token-fetcher.fullname" . }}
+  labels:
+    {{- include "token-fetcher.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  serviceName: {{ include "token-fetcher.fullname" . }}
+  selector:
+    matchLabels:
+      {{- include "token-fetcher.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "token-fetcher.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podSupplementryLabels }}
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "token-fetcher.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          env:
+          - name: HADOOP_HOME
+            value: /kube2hadoop/conf/hadoop
+          {{- if eq .Values.conf.logLevel "DEBUG" }}
+          - name: HADOOP_ROOT_LOGGER
+            value: TRACE
+          - name: HADOOP_JAAS_DEBUG
+            value: "true"
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 9966
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - mountPath: /kube2hadoop/conf/
+            name: config
+            readOnly: true
+          - mountPath: /hadoop2kube.sh
+            name: bin
+            readOnly: true
+            subPath: start_hadoop2kube.sh
+          - mountPath: /kube2hadoop/admin.keytab
+            name: keytab
+            readOnly: true
+            subPath: admin.keytab
+          - mountPath: {{ index .Values.conf.appConfig "kube2hadoop.hadoop.conf.dir" }}
+            name: hadoop-conf
+            readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: {{ include "token-fetcher.fullname" . }}-conf
+      - name: bin
+        configMap:
+          name: {{ include "token-fetcher.fullname" . }}-bin
+          defaultMode: 0555
+      - name: keytab
+        secret:
+          secretName: {{ include "token-fetcher.fullname" . }}-sec
+          optional: true
+      - name: hadoop-conf
+        configMap:
+          name: {{ include "token-fetcher.fullname" . }}-hadoop
+          optional: true
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

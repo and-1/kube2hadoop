@@ -1,10 +1,10 @@
 #!/bin/sh
 
 # Sleep for 15 seconds to wait for IP address of pod to be assigned by API server
-if [[ -z "${SKIP_SLEEP}" ]]; then
-  echo "Sleeping for 15 seconds"
-  sleep 15
-fi
+#if [[ -z "${SKIP_SLEEP}" ]]; then
+#  echo "Sleeping for 15 seconds"
+#  sleep 15
+#fi
 
 retry=0
 RETRY=10
@@ -22,11 +22,12 @@ while [ $retry -lt $RETRY ] ; do
     fi
 done
 
-KUBE2HADOOP_URI=${KUBE2HADOOP_URI:-'http://kube2hadoop-svc.kube-system:9966/getDelegationToken'}
+KUBE2HADOOP_URI=${KUBE2HADOOP_URI:-'http://token-fetcher.kube2hadoop:9966/getDelegationToken'}
 CLUSTERNAME=${CLUSTERNAME:-'some-cluster'}
 POD_NAME=${POD_NAME:-"$HOSTNAME"}
 TMPRES=/tmp/result
 HADOOP_TOKEN_FILE_LOCATION=${HADOOP_TOKEN_FILE_LOCATION:-/var/tmp/hdfs-delegation-token}
+K8SNAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 
 if [ -z $K8SNAMESPACE ] ; then
     echo "ERROR Missing K8s namespace" && exit 2

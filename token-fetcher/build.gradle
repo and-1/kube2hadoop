@@ -14,6 +14,7 @@ dependencies {
   compile deps.hadoop.common
   compile deps.hadoop.hdfs
   compile project(':core')
+  implementation deps.external.'krb-codec'
 
   testCompile deps.external.mockito
   testCompile deps.external.testng
@@ -26,3 +27,5 @@ shadowJar {
   }
   zip64 true
 }
+
+build.dependsOn(shadowJar)

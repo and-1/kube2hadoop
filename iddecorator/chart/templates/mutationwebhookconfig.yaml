@@ -1,0 +1,34 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ include "iddecorator.fullname" . }}
+{{- if .Values.conf.certManager.enabled }}
+  annotations:
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "iddecorator.fullname" . }}-webhook-cert
+{{- end }}
+webhooks:
+  - name: {{ include "iddecorator.fullname" . }}.{{ .Release.Namespace }}.svc
+    admissionReviewVersions:
+    - v1beta1
+    clientConfig:
+      service:
+        name: {{ include "iddecorator.fullname" . }}
+        namespace: {{ .Release.Namespace }}
+        path: "/mutate"
+        port: {{ .Values.service.port }}
+    rules:
+    - operations: [ "CREATE" ]
+      apiGroups: ["*"]
+      apiVersions: ["*"]
+      resources: ["*"]
+    sideEffects: None
+    timeoutSeconds: 5
+    reinvocationPolicy: Never
+    failurePolicy: Fail
+    namespaceSelector:
+      matchLabels:
+        {{- if .Values.conf.namespaceSelector }}
+        {{ toYaml .Values.conf.namespaceSelector }}
+        {{- else }}
+        iddecorator: enabled
+        {{- end }}

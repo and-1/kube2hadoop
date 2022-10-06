@@ -40,19 +40,19 @@ public class ConfigurationKeys {
 
 
   // Kubernetes configurations
-  public static final String KUBERNETES_PREFIX = "kubernetes";
+  public static final String KUBERNETES_PREFIX = "kubernetes.";
   public static final String KUBERNETES_SERVICE_HOST = KUBERNETES_PREFIX + "service.host";
   public static final String KUBERNETES_SERVICE_PORT = KUBERNETES_PREFIX + "service.port";
 
-  public static final String KUBE2HADOOP_TOKEN_FILE_LOCATION = KUBE2HADOOP_PREFIX + "token.location";
-  public static final String KUBE2HADOOP_CERT_LOCATION = KUBE2HADOOP_PREFIX + "cert.location";
+  public static final String KUBE2HADOOP_TOKEN_FILE_LOCATION = KUBERNETES_PREFIX + "token.location";
+  public static final String KUBE2HADOOP_CERT_LOCATION = KUBERNETES_PREFIX + "cert.location";
 
   public static final String KUBE2HADOOP_WATCH_LABEL_SELECTOR = KUBERNETES_PREFIX + "watch.labelselector";
 
   // Authenticator configurations
-  public static final String KUBE2HADOOP_AUTHENTICATOR_LDAP_PROVIDER_URL = KUBERNETES_PREFIX + "authenticator.ldap-provider-url";
-  public static final String KUBE2HAdOOP_AUTHENTICATOR_LDAP_GROUP_DOMAIN = KUBERNETES_PREFIX + "authenticator.ldap-group-domain";
-  public static final String KUBE2HADOOP_AUTHENTICATOR_BLACKLISTED_USERS = KUBERNETES_PREFIX + "authenticator.blacklisted-user";
+  public static final String KUBE2HADOOP_AUTHENTICATOR_LDAP_PROVIDER_URL = KUBE2HADOOP_PREFIX + "authenticator.ldap-provider-url";
+  public static final String KUBE2HAdOOP_AUTHENTICATOR_LDAP_GROUP_DOMAIN = KUBE2HADOOP_PREFIX + "authenticator.ldap-group-domain";
+  public static final String KUBE2HADOOP_AUTHENTICATOR_BLACKLISTED_USERS = KUBE2HADOOP_PREFIX + "authenticator.blacklisted-user";
 
 
   // Token renewer configurations
