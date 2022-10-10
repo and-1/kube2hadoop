@@ -152,15 +152,19 @@ public class TokenFetcherService {
     String userToProxy = authenticator.getAuthenticatedUserID(new AuthenticatorParameters(params));
     LOG.info("User to proxy is: " + userToProxy);
 
-    goFetchDelegationTokens(userToProxy, params.get(Constants.TOKEN_KINDS), cred);
+    String renewerFromRequest = params.containsKey(Constants.RENEWER) ? params.get(Constants.RENEWER)[0] : tokenRenewer;
 
-    // Add the delegation tokens to {@code TokenCache}
-    List<TokenInfo> tokenInfos = TokenInfo.getTokenInfos(ImmutableMap.of(
-        Constants.NAMESPACE, params.get(Constants.NAMESPACE)[0],
-        Constants.POD_NAME, params.get(Constants.POD_NAME)[0],
-        Constants.PROXY_USER, userToProxy),
-        new ArrayList<>(cred.getAllTokens()));
-    tokenInfos.forEach(tokenInfo -> tokenCache.addToken(tokenInfo));
+    goFetchDelegationTokens(userToProxy, params.get(Constants.TOKEN_KINDS), renewerFromRequest, cred);
+
+    if (renewerFromRequest.equals(tokenRenewer)) {
+      // Add the delegation tokens to {@code TokenCache}
+      List<TokenInfo> tokenInfos = TokenInfo.getTokenInfos(ImmutableMap.of(
+          Constants.NAMESPACE, params.get(Constants.NAMESPACE)[0],
+          Constants.POD_NAME, params.get(Constants.POD_NAME)[0],
+          Constants.PROXY_USER, userToProxy),
+          new ArrayList<>(cred.getAllTokens()));
+      tokenInfos.forEach(tokenInfo -> tokenCache.addToken(tokenInfo));
+    }
 
     return encodeCredentialsToBase64(cred);
   }
@@ -180,7 +184,7 @@ public class TokenFetcherService {
     return true;
   }
 
-  private void goFetchDelegationTokens(final String userToProxy, String[] tokenKinds, Credentials cred) {
+  private void goFetchDelegationTokens(final String userToProxy, String[] tokenKinds, final String renewer, Credentials cred) {
     for (String tokenKind : tokenKinds) {
       if (!SUPPORTED_TOKEN_KINDS.contains(tokenKind)) {
         throw new TokenServiceException("Unsupported token kind: " + tokenKind, ErrorCode.UNSUPPORTED_TOKEN_KIND);
@@ -189,13 +193,13 @@ public class TokenFetcherService {
 
     for (String tokenKind : tokenKinds) {
       if (tokenKind.equals(Constants.HDFS_DELEGATION_TOKEN)) {
-        fetchDelegationTokenViaSuperUser(userToProxy, cred);
+        fetchDelegationTokenViaSuperUser(userToProxy, renewer, cred);
         LOG.info("Fetched HDFS Delegation Token");
       }
     }
   }
 
-  private void fetchDelegationTokenViaSuperUser(final String userToProxy, final Credentials cred) {
+  private void fetchDelegationTokenViaSuperUser(final String userToProxy, final String renewer, final Credentials cred) {
     try {
       UserGroupInformation proxyUgi = getProxiedUser(userToProxy);
       LOG.info("Proxy Ugi for " + userToProxy + ": " + proxyUgi.toString());
@@ -209,7 +213,7 @@ public class TokenFetcherService {
         }
 
         private void getToken(final String userToProxy) throws IOException, TokenServiceException {
-          fetchNameNodeToken(userToProxy, cred);
+          fetchNameNodeToken(userToProxy, renewer, cred);
         }
       });
     } catch (final Exception e) {
@@ -246,12 +250,12 @@ public class TokenFetcherService {
     return ugi;
   }
 
-  private void fetchNameNodeToken(String userToProxy, Credentials cred) throws IOException {
+  private void fetchNameNodeToken(String userToProxy, String renewer, Credentials cred) throws IOException {
     final FileSystem fs = FileSystem.get(TokenFetcherService.this.conf);
     // check if we get the correct FS, and most importantly, the conf
     LOG.info("Getting DFS token from " + fs.getUri());
     final Token<?>[] fsTokens =
-        fs.addDelegationTokens(tokenRenewer, cred);
+        fs.addDelegationTokens(renewer, cred);
 
     if (fsTokens.length == 0) {
       throw new TokenServiceException(
@@ -260,8 +264,8 @@ public class TokenFetcherService {
 
     for (final Token<?> fsToken : fsTokens) {
       LOG.info(String.format(
-          "DFS token from namenode fetched, token kind: %s, token service: %s",
-          fsToken.getKind(), fsToken.getService()));
+          "DFS token from namenode fetched, token kind: %s, token service: %s, token renewer: %s",
+          fsToken.getKind(), fsToken.getService(), renewer));
     }
 
     //TODO: getting additional name nodes tokens

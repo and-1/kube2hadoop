@@ -33,6 +33,7 @@ public class Constants {
   public static final String NAMESPACE = "namespace";
   public static final String POD_NAME = "pod-name";
   public static final String TOKEN_KINDS = "token-kinds";
+  public static final String RENEWER = "renewer";
   public static final String DO_AS = "doAs";
   public static final String SRCIP = "srcIP";
   public static final String PROXY_USER = "proxyUser";
